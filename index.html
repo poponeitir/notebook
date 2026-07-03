@@ -1255,6 +1255,32 @@ document.getElementById('viewEditBtn').onclick = () => {
   renderAll();
 })();
 
+document.addEventListener('keydown', (e) => {
+  // Esc cierra cualquier overlay abierto (en orden de prioridad)
+  if(e.key === 'Escape'){
+    if(lightbox.classList.contains('show')){ closeLightbox(); return; }
+    if(drawOverlay.classList.contains('show')){ drawOverlay.classList.remove('show'); return; }
+    if(overlay.classList.contains('show')){ closeEditor(); return; }
+    if(viewOverlay.classList.contains('show')){ closeView(); return; }
+  }
+
+  // Ctrl+N (o Cmd+N en mac) abre nota nueva, si no hay overlay abierto
+  if((e.ctrlKey || e.metaKey) && e.key === 'n'){
+    e.preventDefault();
+    if(!overlay.classList.contains('show') && !viewOverlay.classList.contains('show')){
+      openEditor(null);
+    }
+  }
+
+  // Ctrl+F (o Cmd+F) enfoca el buscador, si no hay overlay abierto
+  if((e.ctrlKey || e.metaKey) && e.key === 'f'){
+    if(!overlay.classList.contains('show') && !viewOverlay.classList.contains('show')){
+      e.preventDefault();
+      document.getElementById('searchInput').focus();
+    }
+  }
+});	
+
 </script>
 
 </body>
