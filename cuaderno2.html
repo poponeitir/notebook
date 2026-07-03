@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link href="https://fonts.bunny.net/css?family=inter:400,600,700|merriweather:400,700|jetbrains-mono:400,600|caveat:500,700|space-grotesk:400,600,700|nunito:400,700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cuaderno</title>
+<style>
+
+  :root{
+    --pearl:#f4f7f9;
+    --pearl-2:#e6edf1;
+    --ink:#26333a;
+    --ink-soft:#5c6f78;
+    --aqua:#5aa7d6;
+    --aqua-deep:#2f6fa3;
+    --mint:#8fd9c4;
+    --mint-deep:#4bab93;
+    --peach:#f0b98a;
+    --lilac:#b6b0e0;
+    --rose:#e69bb0;
+    --line:#d6e0e5;
+    --danger:#cf6a6a;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 0%, #ffffff 0%, transparent 40%),
+      radial-gradient(circle at 90% 10%, #dceef6 0%, transparent 45%),
+      linear-gradient(160deg, var(--pearl) 0%, var(--pearl-2) 60%, #dfe9ee 100%);
+    display:flex;
+    min-height:100vh;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  #sidebar{
+    width:230px;
+    flex-shrink:0;
+    padding:26px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    border-right:1px solid rgba(255,255,255,0.6);
+  }
+  .wordmark{
+    display:flex; align-items:center; gap:8px;
+    font-size:19px; font-weight:700; letter-spacing:-0.4px;
+    padding:0 6px;
+  }
+  .wordmark .orb{
+    width:16px;height:16px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, #fff, var(--mint) 55%, var(--mint-deep) 100%);
+    box-shadow:0 2px 5px rgba(75,171,147,0.35);
+  }
+  #searchWrap{ position:relative; }
+  #searchInput{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:9px 12px 9px 32px;
+    font-size:13px;
+    background:rgba(255,255,255,0.75);
+    outline:none;
+  }
+  #searchInput:focus{ border-color:var(--aqua); box-shadow:0 0 0 3px rgba(90,167,214,0.15); }
+  #searchWrap::before{
+    content:"⚲";
+    position:absolute; left:11px; top:50%; transform:translateY(-50%) rotate(90deg);
+    color:var(--ink-soft); font-size:12px;
+  }
+
+  .rail-label{
+    font-size:11px; font-weight:700; letter-spacing:0.6px;
+    color:var(--ink-soft); text-transform:uppercase;
+    padding:0 6px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .rail-label button{
+    border:none; background:none; cursor:pointer;
+    color:var(--aqua-deep); font-size:16px; font-weight:700; line-height:1;
+    padding:2px 4px;
+  }
+
+  #notebookList{ display:flex; flex-direction:column; gap:3px; }
+  .nb-item{
+    display:flex; align-items:center; gap:9px;
+    padding:8px 10px; border-radius:12px;
+    cursor:pointer; font-size:13.5px;
+    color:var(--ink);
+  }
+  .nb-item:hover{ background:rgba(255,255,255,0.6); }
+  .nb-item.active{
+    background:linear-gradient(180deg,#fff,#e9f4fa);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.9), 0 3px 8px -4px rgba(47,111,163,0.4);
+    font-weight:600;
+  }
+  .nb-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.15); }
+  .nb-name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nb-count{ font-size:11px; color:var(--ink-soft); }
+  .nb-del{
+    border:none; background:none; color:var(--ink-soft);
+    font-size:12px; cursor:pointer; opacity:0; padding:0 2px;
+  }
+  .nb-item:hover .nb-del{ opacity:0.7; }
+  .nb-del:hover{ color:var(--danger); opacity:1 !important; }
+
+  .sidebar-bottom{
+    margin-top:auto;
+    display:flex; flex-direction:column; gap:6px;
+    padding-top:14px; border-top:1px solid rgba(255,255,255,0.6);
+  }
+  .sidebar-bottom button{
+    display:flex; align-items:center; gap:7px;
+    border:1px solid var(--line); background:rgba(255,255,255,0.65);
+    border-radius:12px; padding:8px 10px; font-size:12px; color:var(--ink-soft);
+    cursor:pointer; text-align:left;
+  }
+  .sidebar-bottom button:hover{ background:rgba(255,255,255,0.9); color:var(--ink); }
+
+  /* ---------- MAIN ---------- */
+  #main{
+    flex:1;
+    padding:26px 34px 60px;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  #topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:22px;
+  }
+  #currentTitle{ font-size:20px; font-weight:700; }
+  #currentSub{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+
+  .primary-btn{
+    border:none; border-radius:999px; padding:10px 18px;
+    font-size:13px; font-weight:700; color:#fff; cursor:pointer;
+    background:linear-gradient(180deg,#7fc6e8,var(--aqua-deep));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -5px 8px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(47,111,163,0.7);
+  }
+  .primary-btn:active{ transform:translateY(1px); }
+
+  #sortSelect{
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 14px; font-size:12.5px; color:var(--ink-soft);
+    background:rgba(255,255,255,0.75); outline:none; cursor:pointer;
+    margin-right:10px;
+  }
+
+  .tag-filter-row{
+    display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px;
+  }
+  .tag-chip{
+    font-size:11.5px; padding:5px 11px; border-radius:999px;
+    background:rgba(255,255,255,0.7); border:1px solid var(--line);
+    cursor:pointer; color:var(--ink-soft);
+  }
+  .tag-chip.active{
+    background:linear-gradient(180deg,#fff,#e3f7f0);
+    border-color:#bfe6da; color:var(--mint-deep); font-weight:700;
+  }
+
+  #notesGrid{
+    columns:3 240px;
+    column-gap:16px;
+  }
+  @media (max-width:900px){ #notesGrid{ columns:2 220px; } }
+  @media (max-width:600px){ #notesGrid{ columns:1; } }
+
+  .note-card{
+    break-inside:avoid;
+    margin-bottom:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.72));
+    border:1px solid rgba(255,255,255,0.9);
+    border-radius:16px;
+    padding:14px 15px 15px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,0.9) inset, 0 10px 22px -14px rgba(38,51,58,0.3);
+    transition:transform .12s;
+  }
+  .note-card:hover{ transform:translateY(-2px); }
+  .note-card.pinned{ box-shadow:0 1px 0 rgba(255,255,255,0.9) inset, 0 10px 22px -14px rgba(90,167,214,0.55), 0 0 0 1.5px rgba(90,167,214,0.35); }
+  .note-card::after{
+    content:"";
+    position:absolute; top:0; right:0; width:22px; height:22px;
+    background:linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.06) 50%);
+    border-radius:0 16px 0 0;
+  }
+  .note-color-bar{
+    height:4px; border-radius:3px; margin:-14px -15px 10px; opacity:0.85;
+  }
+  .note-actions{
+    position:absolute; top:8px; right:8px; z-index:2;
+    display:flex; gap:4px; opacity:0; transition:opacity .12s;
+  }
+  .note-card:hover .note-actions{ opacity:1; }
+  .note-actions button{
+    width:22px;height:22px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,0.9); font-size:11px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-soft);
+  }
+  .note-actions button.pin-active{ background:var(--aqua); color:#fff; border-color:var(--aqua-deep); }
+  .note-actions button:hover{ color:var(--ink); }
+  .pin-badge{
+    position:absolute; top:8px; left:8px; font-size:11px;
+    color:var(--aqua-deep);
+  }
+  .note-title{ font-size:14px; font-weight:700; margin-bottom:5px; }
+  .note-img{
+    width:100%; border-radius:10px; margin-bottom:8px; display:block;
+    max-height:160px; object-fit:cover;
+  }
+  .note-img-strip{ display:flex; gap:5px; margin-bottom:8px; overflow-x:auto; }
+  .note-img-strip img{ width:52px;height:52px;object-fit:cover;border-radius:8px; flex-shrink:0; }
+  .note-img-count{
+    font-size:10px; color:#fff; background:rgba(38,51,58,0.6);
+    padding:2px 6px; border-radius:999px; position:absolute; bottom:8px; right:8px;
+  }
+  .note-img-wrap{ position:relative; }
+  .note-body{ font-size:12.5px; color:var(--ink-soft); line-height:1.5; white-space:pre-wrap; }
+  .note-checklist{ list-style:none; margin:0; padding:0; font-size:12.5px; }
+  .note-checklist li{ display:flex; gap:6px; align-items:flex-start; margin-bottom:3px; color:var(--ink-soft); }
+  .note-checklist li.done{ text-decoration:line-through; opacity:0.55; }
+  .note-checklist .cb{ margin-top:2px; width:11px;height:11px;border-radius:4px;border:1.4px solid var(--aqua); flex-shrink:0; }
+  .note-checklist li.done .cb{ background:var(--mint-deep); border-color:var(--mint-deep); }
+  .note-tags{ display:flex; gap:5px; flex-wrap:wrap; margin-top:9px; }
+  .note-tags span{ font-size:10px; padding:3px 8px; border-radius:999px; background:rgba(90,167,214,0.12); color:var(--aqua-deep); }
+  .note-meta{ font-size:10px; color:#9aabb2; margin-top:8px; }
+
+  .empty-state{
+    color:var(--ink-soft); font-size:13px; text-align:center;
+    padding:60px 20px; grid-column:1/-1;
+  }
+
+  /* ---------- EDITOR OVERLAY ---------- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(38,51,58,0.35);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:40px 20px; z-index:50; overflow-y:auto;
+  }
+  #overlay.show{ display:flex; }
+  #editorCard{
+    width:100%; max-width:520px;
+    background:linear-gradient(180deg,#ffffff,#f2f7f9);
+    border-radius:22px;
+    padding:24px 24px 26px;
+    box-shadow:0 30px 60px -20px rgba(38,51,58,0.45);
+  }
+  #editorCard input[type=text], #editorCard textarea{
+    width:100%; border:1px solid var(--line); border-radius:12px;
+    padding:10px 13px; font-size:14px; font-family:inherit; color:var(--ink);
+    background:rgba(255,255,255,0.8); outline:none; margin-top:6px;
+  }
+  #editorCard input[type=text]:focus, #editorCard textarea:focus{
+    border-color:var(--aqua); box-shadow:0 0 0 3px rgba(90,167,214,0.15);
+  }
+  #titleInput{ font-size:16px; font-weight:700; }
+  #bodyInput{ min-height:100px; resize:vertical; }
+  .field-label{ font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; margin-top:16px; display:block; }
+
+  .type-toggle{ display:flex; gap:8px; margin-top:8px; }
+  .type-toggle button{
+    flex:1; border:1px solid var(--line); background:rgba(255,255,255,0.7);
+    border-radius:10px; padding:8px; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .type-toggle button.active{
+    background:linear-gradient(180deg,#fff,#e9f4fa); border-color:var(--aqua);
+    color:var(--aqua-deep); font-weight:700;
+  }
+
+  #checklistEditor{ margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+  .cl-row{ display:flex; align-items:center; gap:8px; }
+  .cl-row input[type=checkbox]{ width:15px;height:15px; accent-color:var(--mint-deep); }
+  .cl-row input[type=text]{ flex:1; margin-top:0; padding:7px 10px; font-size:13px; }
+  .cl-row .cl-remove{ border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:14px; }
+  #addChecklistItem{
+    align-self:flex-start; border:none; background:none; color:var(--aqua-deep);
+    font-size:12.5px; font-weight:700; cursor:pointer; margin-top:2px;
+  }
+
+  #imgFieldWrap{ margin-top:8px; }
+  .file-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:600; color:var(--aqua-deep);
+    background:linear-gradient(180deg,#fff,#e3f0f7); border:1px solid #c7dfec;
+    padding:8px 14px; border-radius:999px; cursor:pointer;
+  }
+  input[type=file]{ display:none; }
+  #imgPreviewWrap{ margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+  .img-thumb{ position:relative; }
+  .img-thumb img{ width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line); display:block; }
+  .img-thumb button{
+    position:absolute; top:-6px; right:-6px; width:18px;height:18px;border-radius:50%;
+    border:1px solid var(--line); background:#fff; color:var(--danger); font-size:10px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+
+  #notebookSelect{
+    width:100%; border:1px solid var(--line); border-radius:12px;
+    padding:9px 12px; font-size:13px; margin-top:6px; background:rgba(255,255,255,0.8);
+  }
+  #fontSelect{
+  width:100%; border:1px solid var(--line); border-radius:12px;
+  padding:9px 12px; font-size:13px; margin-top:6px; background:rgba(255,255,255,0.8);
+}
+  .editor-footer{
+    display:flex; justify-content:space-between; align-items:center; margin-top:22px;
+  }
+  .ghost-btn{
+    border:1px solid var(--line); background:rgba(255,255,255,0.7);
+    border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600;
+    color:var(--ink); cursor:pointer;
+  }
+  .danger-link{ border:none;background:none;color:var(--danger);font-size:12.5px;cursor:pointer; }
+  .dup-link{ border:none;background:none;color:var(--aqua-deep);font-size:12.5px;cursor:pointer;margin-left:14px; }
+
+  .swatches{ display:flex; gap:8px; margin-top:8px; }
+  .swatch{
+    width:22px;height:22px;border-radius:50%;cursor:pointer;
+    border:2px solid transparent; box-shadow:inset 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .swatch.active{ border-color:var(--ink); }
+
+  /* ---------- VIEW PANEL (ver nota, sin editar) ---------- */
+  #viewOverlay{
+    position:fixed; inset:0; background:rgba(38,51,58,0.35);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:40px 20px; z-index:60; overflow-y:auto;
+  }
+  #viewOverlay.show{ display:flex; }
+  #viewCard{
+    width:100%; max-width:560px;
+    background:linear-gradient(180deg,#ffffff,#f2f7f9);
+    border-radius:22px;
+    padding:26px 26px 22px;
+    box-shadow:0 30px 60px -20px rgba(38,51,58,0.45);
+  }
+  .vw-topline{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .vw-nb-tag{ font-size:11px; color:var(--ink-soft); background:rgba(90,167,214,0.12); padding:3px 10px; border-radius:999px; }
+  .vw-pin-flag{ font-size:12px; color:var(--aqua-deep); }
+  #viewTitle{ font-size:20px; font-weight:700; margin:2px 0 14px; }
+  .vw-images{ display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:8px; margin-bottom:14px; }
+  .vw-images img{ width:100%; height:140px; object-fit:cover; border-radius:12px; border:1px solid var(--line); }
+  .vw-body{ font-size:14px; line-height:1.65; color:var(--ink); margin-bottom:14px; }
+  .vw-body h3{ font-size:17px; margin:14px 0 6px; }
+  .vw-body h4{ font-size:15px; margin:12px 0 5px; }
+  .vw-body ul, .vw-body ol{ margin:6px 0; padding-left:20px; }
+  .vw-body code{ background:rgba(90,167,214,0.12); padding:1px 6px; border-radius:6px; font-size:12.5px; }
+  .vw-body p{ margin:0 0 10px; }
+  .vw-checklist{ list-style:none; margin:0 0 14px; padding:0; }
+  .vw-checklist li{ display:flex; align-items:flex-start; gap:9px; padding:6px 0; font-size:14px; cursor:pointer; }
+  .vw-checklist li.done{ color:var(--ink-soft); text-decoration:line-through; }
+  .vw-checklist .cb-lg{ width:16px;height:16px;border-radius:5px; border:1.6px solid var(--aqua); flex-shrink:0; margin-top:2px; }
+  .vw-checklist li.done .cb-lg{ background:var(--mint-deep); border-color:var(--mint-deep); }
+  .vw-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .vw-tags span{ font-size:11px; padding:4px 10px; border-radius:999px; background:rgba(90,167,214,0.12); color:var(--aqua-deep); }
+  .vw-footer{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:16px; }
+  .vw-footer .primary-btn{ margin:0; }
+  .vw-footer .ghost-btn{ margin:0; }
+  .vw-spacer{ flex:1; }
+
+  /* ---------- DIBUJO A MANO ---------- */
+  #drawOverlay{
+    position:fixed; inset:0; background:rgba(38,51,58,0.4);
+    display:none; align-items:center; justify-content:center;
+    padding:20px; z-index:70;
+  }
+  #drawOverlay.show{ display:flex; }
+  #drawCard{
+    background:linear-gradient(180deg,#ffffff,#f2f7f9);
+    border-radius:20px; padding:18px; box-shadow:0 30px 60px -20px rgba(38,51,58,0.45);
+    max-width:96vw;
+  }
+  .draw-toolbar{ display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  #drawCanvas{
+    border:1px solid var(--line); border-radius:14px; background:#fff;
+    touch-action:none; display:block; cursor:crosshair;
+  }
+  .draw-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+  .draw-btn-plain{
+    border:1px solid var(--line); background:rgba(255,255,255,0.7); border-radius:999px;
+    padding:6px 13px; font-size:12px; cursor:pointer; color:var(--ink-soft);
+  }
+  
+  /* ---------- LIGHTBOX DE IMÁGENES ---------- */
+#lightbox{
+  position:fixed; inset:0; background:rgba(20,28,32,0.85);
+  display:none; align-items:center; justify-content:center;
+  z-index:100; padding:30px;
+}
+#lightbox.show{ display:flex; }
+#lightbox img{
+  max-width:90vw; max-height:85vh; border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.lb-close{
+  position:absolute; top:20px; right:24px;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,0.9); border:none; cursor:pointer;
+  font-size:16px; color:var(--ink);
+}
+.lb-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,0.85); border:none; cursor:pointer;
+  font-size:18px; color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+}
+.lb-prev{ left:20px; }
+.lb-next{ right:20px; }
+.lb-counter{
+  position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+  font-size:12px; color:#fff; background:rgba(0,0,0,0.4);
+  padding:4px 12px; border-radius:999px;
+}
+.vw-images img{ cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="wordmark"><span class="orb"></span>cuaderno</div>
+
+  <div id="searchWrap">
+    <input type="text" id="searchInput" placeholder="buscar notas...">
+  </div>
+
+  <div>
+    <div class="rail-label">libretas <button id="addNotebookBtn" title="nueva libreta">＋</button></div>
+    <div id="notebookList"></div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <button id="exportBtn">⇩ exportar respaldo (.json)</button>
+    <button id="importBtn">⇧ importar respaldo</button>
+    <input type="file" id="importInput" accept="application/json" style="display:none;">
+  </div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <div>
+      <div id="currentTitle">Todas las notas</div>
+      <div id="currentSub"></div>
+    </div>
+    <div style="display:flex; align-items:center;">
+      <select id="sortSelect">
+        <option value="recent">recientes primero</option>
+        <option value="title">título (A-Z)</option>
+        <option value="color">color</option>
+      </select>
+      <button class="primary-btn" id="newNoteBtn">＋ nueva nota</button>
+    </div>
+  </div>
+
+  <div class="tag-filter-row" id="tagFilterRow"></div>
+
+  <div id="notesGrid"></div>
+</div>
+
+<div id="overlay">
+  <div id="editorCard">
+    <input type="text" id="titleInput" placeholder="título de la nota">
+
+    <span class="field-label">libreta</span>
+    <select id="notebookSelect"></select>
+
+    <span class="field-label">tipo</span>
+    <div class="type-toggle">
+      <button id="typeTextBtn" class="active">texto</button>
+      <button id="typeChecklistBtn">checklist</button>
+    </div>
+<span class="field-label">tipografía</span>
+<select id="fontSelect">
+  <option value="'Inter',sans-serif">Inter (sans)</option>
+  <option value="'Merriweather',serif">Merriweather (serif)</option>
+  <option value="'JetBrains Mono',monospace">JetBrains Mono</option>
+  <option value="'Caveat',cursive">Caveat (manuscrita)</option>
+  <option value="'Space Grotesk',sans-serif">Space Grotesk</option>
+  <option value="'Nunito',sans-serif">Nunito (redondeada)</option>
+</select>
+    <div id="textEditor">
+      <span class="field-label">contenido (admite # título, **negrita**, *cursiva*, listas con -)</span>
+      <textarea id="bodyInput" placeholder="escribe aquí... markdown básico soportado"></textarea>
+    </div>
+
+    <div id="checklistEditor" style="display:none;"></div>
+    <button id="addChecklistItem" style="display:none;">＋ agregar ítem</button>
+
+    <span class="field-label">imagen</span>
+    <div id="imgFieldWrap">
+      <label class="file-btn" for="imgInput">＋ adjuntar imagen(es)</label>
+      <input type="file" id="imgInput" accept="image/*" multiple>
+      <button class="file-btn" id="openDrawBtn" type="button" style="margin-left:8px;">✎ dibujar</button>
+      <div id="imgPreviewWrap"></div>
+    </div>
+
+    <span class="field-label">color</span>
+    <div class="swatches" id="swatches"></div>
+
+    <span class="field-label">etiquetas (separadas por coma)</span>
+    <input type="text" id="tagsInput" placeholder="ej: matemáticas, examen">
+
+    <div class="editor-footer">
+      <button class="danger-link" id="deleteNoteBtn" style="display:none;">eliminar nota</button>
+      <button class="dup-link" id="duplicateNoteBtn" style="display:none;">duplicar nota</button>
+      <div style="flex:1;"></div>
+      <button class="ghost-btn" id="cancelBtn">cancelar</button>
+      <button class="primary-btn" id="saveNoteBtn" style="margin-left:8px;">guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="viewOverlay">
+  <div id="viewCard">
+    <div class="vw-topline">
+      <span class="vw-nb-tag" id="viewNbTag"></span>
+      <span class="vw-pin-flag" id="viewPinFlag" style="display:none;">📌 fijada</span>
+    </div>
+    <div id="viewTitle"></div>
+    <div class="vw-images" id="viewImages"></div>
+    <ul class="vw-checklist" id="viewChecklist" style="display:none;"></ul>
+    <div class="vw-body" id="viewBody"></div>
+    <div class="vw-tags" id="viewTags"></div>
+    <div class="vw-footer">
+      <button class="ghost-btn" id="viewArchiveBtn"></button>
+      <div class="vw-spacer"></div>
+      <button class="ghost-btn" id="viewCloseBtn">cerrar</button>
+      <button class="primary-btn" id="viewEditBtn">editar</button>
+    </div>
+  </div>
+</div>
+
+<div id="drawOverlay">
+  <div id="drawCard">
+    <div class="draw-toolbar">
+      <div class="swatches" id="drawSwatches"></div>
+      <button class="draw-btn-plain" id="clearDrawBtn" type="button">limpiar</button>
+    </div>
+    <canvas id="drawCanvas" width="460" height="300"></canvas>
+    <div class="draw-actions">
+      <button class="draw-btn-plain" id="cancelDrawBtn" type="button">cancelar</button>
+      <button class="primary-btn" id="useDrawBtn" type="button">usar dibujo</button>
+    </div>
+  </div>
+</div>
+<div id="lightbox">
+  <button class="lb-close" id="lbClose">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+  <img id="lbImg" src="" alt="imagen ampliada">
+  <button class="lb-nav lb-next" id="lbNext">›</button>
+  <span class="lb-counter" id="lbCounter"></span>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'cuaderno_data_v1';
+  const COLORS = ['#5aa7d6','#4bab93','#f0b98a','#b6b0e0','#e69bb0'];
+
+  let state = load();
+  let currentNotebookId = null; // null = todas
+  let viewingArchive = false;
+  let activeTagFilter = null;
+  let searchQuery = '';
+  let sortMode = 'recent';
+  let editingNoteId = null;
+  let editorImages = [];
+  let editorType = 'text';
+  let editorChecklist = [];
+  let editorColor = COLORS[0];
+  let viewingNoteId = null;
+  let editorFont = "'Inter',sans-serif";
+
+  function load(){
+    let data;
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      data = raw ? JSON.parse(raw) : null;
+    }catch(e){ data = null; }
+    if(!data){
+      const defaultNb = { id: uid(), name: 'general', color: COLORS[0] };
+      data = { notebooks: [defaultNb], notes: [] };
+    }
+    // migración: image único -> images[], pinned/archived por defecto
+    data.notes.forEach(n => {
+      if(n.image && !n.images){ n.images = [n.image]; delete n.image; }
+      if(!n.images) n.images = [];
+      if(typeof n.pinned !== 'boolean') n.pinned = false;
+      if(typeof n.archived !== 'boolean') n.archived = false;
+    });
+    return data;
+  }
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e){ alert('no se pudo guardar — puede que el almacenamiento local esté lleno.'); }
+  }
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+
+  // ---------- RENDER NOTEBOOKS ----------
+  function renderNotebooks(){
+    const list = document.getElementById('notebookList');
+    list.innerHTML = '';
+
+    const allItem = document.createElement('div');
+    allItem.className = 'nb-item' + (currentNotebookId===null && !viewingArchive ? ' active':'');
+    const activeCount = state.notes.filter(n=>!n.archived).length;
+    allItem.innerHTML = '<span class="nb-dot" style="background:#9aabb2;"></span><span class="nb-name">todas las notas</span><span class="nb-count">'+activeCount+'</span>';
+    allItem.onclick = () => { currentNotebookId = null; viewingArchive = false; renderAll(); };
+    list.appendChild(allItem);
+
+    state.notebooks.forEach(nb => {
+      const count = state.notes.filter(n=>n.notebookId===nb.id && !n.archived).length;
+      const item = document.createElement('div');
+      item.className = 'nb-item' + (currentNotebookId===nb.id && !viewingArchive ? ' active':'');
+      item.innerHTML =
+        '<span class="nb-dot" style="background:'+nb.color+';"></span>'+
+        '<span class="nb-name">'+escapeHtml(nb.name)+'</span>'+
+        '<span class="nb-count">'+count+'</span>'+
+        '<button class="nb-del" title="eliminar libreta">✕</button>';
+      item.onclick = (e) => {
+        if(e.target.classList.contains('nb-del')) return;
+        currentNotebookId = nb.id; viewingArchive = false; renderAll();
+      };
+      item.querySelector('.nb-del').onclick = (e) => {
+        e.stopPropagation();
+        const has = state.notes.some(n=>n.notebookId===nb.id);
+        const msg = has ? 'esta libreta tiene notas — se eliminarán también. ¿continuar?' : '¿eliminar esta libreta?';
+        if(confirm(msg)){
+          state.notes = state.notes.filter(n=>n.notebookId!==nb.id);
+          state.notebooks = state.notebooks.filter(n=>n.id!==nb.id);
+          if(currentNotebookId===nb.id) currentNotebookId = null;
+          save(); renderAll();
+        }
+      };
+      list.appendChild(item);
+    });
+
+    const archiveCount = state.notes.filter(n=>n.archived).length;
+    const archiveItem = document.createElement('div');
+    archiveItem.className = 'nb-item' + (viewingArchive ? ' active':'');
+    archiveItem.innerHTML = '<span class="nb-dot" style="background:#c9d6dc;"></span><span class="nb-name">🗄 archivadas</span><span class="nb-count">'+archiveCount+'</span>';
+    archiveItem.onclick = () => { viewingArchive = true; currentNotebookId = null; renderAll(); };
+    list.appendChild(archiveItem);
+  }
+
+  document.getElementById('addNotebookBtn').onclick = () => {
+    const name = prompt('nombre de la libreta:');
+    if(!name || !name.trim()) return;
+    const color = COLORS[state.notebooks.length % COLORS.length];
+    state.notebooks.push({ id: uid(), name: name.trim(), color });
+    save(); renderAll();
+  };
+
+  // ---------- RENDER NOTES ----------
+  function getAllTags(){
+    const set = new Set();
+    state.notes.forEach(n => (n.tags||[]).forEach(t => set.add(t)));
+    return Array.from(set).sort();
+  }
+
+  function renderTagFilter(){
+    const row = document.getElementById('tagFilterRow');
+    const tags = getAllTags();
+    row.innerHTML = '';
+    tags.forEach(t => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip' + (activeTagFilter===t ? ' active':'');
+      chip.textContent = t;
+      chip.onclick = () => { activeTagFilter = (activeTagFilter===t ? null : t); renderAll(); };
+      row.appendChild(chip);
+    });
+  }
+
+  function renderNotes(){
+    const grid = document.getElementById('notesGrid');
+    grid.innerHTML = '';
+
+    let notes = state.notes.slice();
+    if(viewingArchive){
+      notes = notes.filter(n => n.archived);
+    } else {
+      notes = notes.filter(n => !n.archived);
+      if(currentNotebookId !== null) notes = notes.filter(n => n.notebookId === currentNotebookId);
+    }
+    if(activeTagFilter) notes = notes.filter(n => (n.tags||[]).includes(activeTagFilter));
+    if(searchQuery){
+      const q = searchQuery.toLowerCase();
+      notes = notes.filter(n => {
+        const inTitle = (n.title||'').toLowerCase().includes(q);
+        const inBody = (n.body||'').toLowerCase().includes(q);
+        const inChecklist = (n.items||[]).some(it => it.text.toLowerCase().includes(q));
+        const inTags = (n.tags||[]).some(t => t.toLowerCase().includes(q));
+        return inTitle || inBody || inChecklist || inTags;
+      });
+    }
+    notes.sort((a,b) => {
+      if((b.pinned?1:0) !== (a.pinned?1:0)) return (b.pinned?1:0) - (a.pinned?1:0);
+      if(sortMode === 'title') return (a.title||'').localeCompare(b.title||'');
+      if(sortMode === 'color') return (a.color||'').localeCompare(b.color||'');
+      return b.updatedAt - a.updatedAt;
+    });
+
+    if(notes.length === 0){
+      grid.innerHTML = '<div class="empty-state">no hay notas aquí todavía. crea una con "＋ nueva nota".</div>';
+      return;
+    }
+
+    notes.forEach(n => {
+      const card = document.createElement('div');
+      card.className = 'note-card' + (n.pinned ? ' pinned':'');
+      let html = '<div class="note-color-bar" style="background:'+(n.color||COLORS[0])+';"></div>';
+      html += '<div class="note-actions">'+
+        '<button class="pin-btn'+(n.pinned?' pin-active':'')+'" title="fijar">📌</button>'+
+        '<button class="dup-btn" title="duplicar">⧉</button>'+
+        '<button class="arch-btn" title="'+(n.archived?'restaurar':'archivar')+'">'+(n.archived?'↺':'🗄')+'</button>'+
+        '<button class="del-btn" title="eliminar">✕</button>'+
+        '</div>';
+      if(n.title) html += '<div class="note-title">'+escapeHtml(n.title)+'</div>';
+      if(n.images && n.images.length === 1){
+        html += '<img class="note-img" src="'+n.images[0]+'">';
+      } else if(n.images && n.images.length > 1){
+        html += '<div class="note-img-wrap"><div class="note-img-strip">'+
+          n.images.map(im=>'<img src="'+im+'">').join('')+
+          '</div><span class="note-img-count">'+n.images.length+' fotos</span></div>';
+      }
+      if(n.type === 'checklist'){
+        html += '<ul class="note-checklist">';
+        (n.items||[]).slice(0,6).forEach(it => {
+          html += '<li class="'+(it.done?'done':'')+'"><span class="cb"></span><span>'+escapeHtml(it.text)+'</span></li>';
+        });
+        html += '</ul>';
+      } else if(n.body){
+        html += '<div class="note-body">'+escapeHtml(truncate(n.body, 160))+'</div>';
+      }
+      if(n.tags && n.tags.length){
+        html += '<div class="note-tags">'+n.tags.map(t=>'<span>'+escapeHtml(t)+'</span>').join('')+'</div>';
+      }
+      html += '<div class="note-meta">'+formatDate(n.updatedAt)+'</div>';
+      card.innerHTML = html;
+      card.onclick = () => openView(n);
+      card.querySelector('.pin-btn').onclick = (e) => { e.stopPropagation(); n.pinned = !n.pinned; save(); renderNotes(); };
+      card.querySelector('.dup-btn').onclick = (e) => { e.stopPropagation(); duplicateNote(n); };
+      card.querySelector('.arch-btn').onclick = (e) => { e.stopPropagation(); n.archived = !n.archived; save(); renderAll(); };
+      card.querySelector('.del-btn').onclick = (e) => {
+        e.stopPropagation();
+        if(confirm('¿eliminar esta nota?')){ state.notes = state.notes.filter(x=>x.id!==n.id); save(); renderAll(); }
+      };
+      grid.appendChild(card);
+    });
+  }
+
+  function duplicateNote(n){
+    const copy = JSON.parse(JSON.stringify(n));
+    copy.id = uid();
+    copy.title = (n.title || 'sin título') + ' (copia)';
+    copy.pinned = false;
+    copy.updatedAt = Date.now();
+    state.notes.push(copy);
+    save(); renderAll();
+  }
+
+  document.getElementById('sortSelect').addEventListener('change', (e) => {
+    sortMode = e.target.value;
+    renderNotes();
+  });
+
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + '…' : s; }
+  function formatDate(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-CO', { day:'numeric', month:'short' }) + ' · ' + d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- MARKDOWN BÁSICO ----------
+  // soporta: # y ## títulos, **negrita**, *cursiva*, `código`, listas con - y 1.
+  function renderMarkdown(raw){
+    if(!raw) return '';
+    const lines = escapeHtml(raw).split('\n');
+    let html = '';
+    let listBuffer = [];
+    let listType = null;
+
+    function flushList(){
+      if(listBuffer.length){
+        const tag = listType === 'ol' ? 'ol' : 'ul';
+        html += '<'+tag+'>' + listBuffer.map(li=>'<li>'+li+'</li>').join('') + '</'+tag+'>';
+        listBuffer = []; listType = null;
+      }
+    }
+    function inline(t){
+      return t
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>');
+    }
+
+    lines.forEach(line => {
+      const bullet = line.match(/^-\s+(.*)/);
+      const numbered = line.match(/^\d+\.\s+(.*)/);
+      if(bullet){
+        if(listType !== 'ul') flushList();
+        listType = 'ul'; listBuffer.push(inline(bullet[1]));
+        return;
+      }
+      if(numbered){
+        if(listType !== 'ol') flushList();
+        listType = 'ol'; listBuffer.push(inline(numbered[1]));
+        return;
+      }
+      flushList();
+      if(/^##\s+/.test(line)){ html += '<h4>'+inline(line.replace(/^##\s+/,''))+'</h4>'; return; }
+      if(/^#\s+/.test(line)){ html += '<h3>'+inline(line.replace(/^#\s+/,''))+'</h3>'; return; }
+      if(line.trim() === ''){ return; }
+      html += '<p>'+inline(line)+'</p>';
+    });
+    flushList();
+    return html;
+  }
+
+  function renderTopbar(){
+    const title = document.getElementById('currentTitle');
+    const sub = document.getElementById('currentSub');
+    if(viewingArchive){
+      title.textContent = '🗄 archivadas';
+    } else if(currentNotebookId === null){
+      title.textContent = 'todas las notas';
+    } else {
+      const nb = state.notebooks.find(n=>n.id===currentNotebookId);
+      title.textContent = nb ? nb.name : 'todas las notas';
+    }
+    sub.textContent = activeTagFilter ? 'filtrando por etiqueta: ' + activeTagFilter : '';
+  }
+
+  function renderAll(){
+    renderNotebooks();
+    renderTagFilter();
+    renderTopbar();
+    renderNotes();
+  }
+
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderNotes();
+  });
+
+  // ---------- EDITOR ----------
+  const overlay = document.getElementById('overlay');
+  const titleInput = document.getElementById('titleInput');
+  const bodyInput = document.getElementById('bodyInput');
+  const notebookSelect = document.getElementById('notebookSelect');
+  const tagsInput = document.getElementById('tagsInput');
+  const checklistEditor = document.getElementById('checklistEditor');
+  const addChecklistItemBtn = document.getElementById('addChecklistItem');
+  const typeTextBtn = document.getElementById('typeTextBtn');
+  const typeChecklistBtn = document.getElementById('typeChecklistBtn');
+  const textEditor = document.getElementById('textEditor');
+  const imgInput = document.getElementById('imgInput');
+  const imgPreviewWrap = document.getElementById('imgPreviewWrap');
+  const swatchesWrap = document.getElementById('swatches');
+  const deleteNoteBtn = document.getElementById('deleteNoteBtn');
+  const duplicateNoteBtn = document.getElementById('duplicateNoteBtn');
+  const fontSelect = document.getElementById('fontSelect');
+
+  function buildSwatches(){
+    swatchesWrap.innerHTML = '';
+    COLORS.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (c===editorColor ? ' active':'');
+      sw.style.background = c;
+      sw.onclick = () => { editorColor = c; buildSwatches(); };
+      swatchesWrap.appendChild(sw);
+    });
+  }
+
+  function buildNotebookSelect(){
+    notebookSelect.innerHTML = '';
+    state.notebooks.forEach(nb => {
+      const opt = document.createElement('option');
+      opt.value = nb.id; opt.textContent = nb.name;
+      notebookSelect.appendChild(opt);
+    });
+  }
+
+  function setEditorType(type){
+    editorType = type;
+    typeTextBtn.classList.toggle('active', type==='text');
+    typeChecklistBtn.classList.toggle('active', type==='checklist');
+    textEditor.style.display = type==='text' ? 'block':'none';
+    checklistEditor.style.display = type==='checklist' ? 'flex':'none';
+    addChecklistItemBtn.style.display = type==='checklist' ? 'inline-block':'none';
+  }
+  typeTextBtn.onclick = () => setEditorType('text');
+  typeChecklistBtn.onclick = () => setEditorType('checklist');
+  fontSelect.onchange = (e) => { editorFont = e.target.value; };
+
+  function renderChecklistEditor(){
+    checklistEditor.innerHTML = '';
+    editorChecklist.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'cl-row';
+      row.innerHTML =
+        '<input type="checkbox" '+(item.done?'checked':'')+'>'+
+        '<input type="text" value="'+escapeHtml(item.text)+'" placeholder="ítem...">'+
+        '<button class="cl-remove">✕</button>';
+      row.querySelector('input[type=checkbox]').onchange = (e) => { editorChecklist[i].done = e.target.checked; };
+      row.querySelector('input[type=text]').oninput = (e) => { editorChecklist[i].text = e.target.value; };
+      row.querySelector('.cl-remove').onclick = () => { editorChecklist.splice(i,1); renderChecklistEditor(); };
+      checklistEditor.appendChild(row);
+    });
+  }
+  addChecklistItemBtn.onclick = () => { editorChecklist.push({text:'', done:false}); renderChecklistEditor(); };
+
+  function renderImgPreviews(){
+    imgPreviewWrap.innerHTML = '';
+    editorImages.forEach((src, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'img-thumb';
+      wrap.innerHTML = '<img src="'+src+'"><button title="quitar">✕</button>';
+      wrap.querySelector('button').onclick = () => { editorImages.splice(i,1); renderImgPreviews(); };
+      imgPreviewWrap.appendChild(wrap);
+    });
+  }
+
+  function addImageFile(file){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if(w > MAX || h > MAX){ const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        editorImages.push(canvas.toDataURL('image/jpeg', 0.75));
+        renderImgPreviews();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  imgInput.addEventListener('change', () => {
+    Array.from(imgInput.files).forEach(addImageFile);
+    imgInput.value = '';
+  });
+
+  function openEditor(note){
+    editingNoteId = note ? note.id : null;
+    titleInput.value = note ? (note.title||'') : '';
+    bodyInput.value = note ? (note.body||'') : '';
+    editorImages = note && note.images ? note.images.slice() : [];
+    editorChecklist = note && note.items ? note.items.map(i=>({...i})) : [];
+    editorColor = note ? (note.color||COLORS[0]) : (currentNotebookId ? (state.notebooks.find(n=>n.id===currentNotebookId)||{}).color||COLORS[0] : COLORS[0]);
+	editorFont = note && note.font ? note.font : "'Inter',sans-serif";
+fontSelect.value = editorFont;
+    tagsInput.value = note && note.tags ? note.tags.join(', ') : '';
+
+    buildNotebookSelect();
+    notebookSelect.value = note ? note.notebookId : (currentNotebookId || state.notebooks[0].id);
+
+    renderImgPreviews();
+    imgInput.value = '';
+
+    setEditorType(note ? (note.type||'text') : 'text');
+    renderChecklistEditor();
+    buildSwatches();
+
+    deleteNoteBtn.style.display = note ? 'inline-block' : 'none';
+    duplicateNoteBtn.style.display = note ? 'inline-block' : 'none';
+    overlay.classList.add('show');
+    titleInput.focus();
+  }
+  function closeEditor(){ overlay.classList.remove('show'); }
+
+  // ---------- VER NOTA (panel de solo lectura) ----------
+  const viewOverlay = document.getElementById('viewOverlay');
+  const viewNbTag = document.getElementById('viewNbTag');
+  const viewPinFlag = document.getElementById('viewPinFlag');
+  const viewTitleEl = document.getElementById('viewTitle');
+  const viewImagesEl = document.getElementById('viewImages');
+  const viewChecklistEl = document.getElementById('viewChecklist');
+  const viewBodyEl = document.getElementById('viewBody');
+  const viewTagsEl = document.getElementById('viewTags');
+  const viewArchiveBtn = document.getElementById('viewArchiveBtn');
+
+  function openView(note){
+    viewingNoteId = note.id;
+    const nb = state.notebooks.find(n=>n.id===note.notebookId);
+    viewNbTag.textContent = nb ? nb.name : '';
+    viewPinFlag.style.display = note.pinned ? 'inline' : 'none';
+    viewTitleEl.textContent = note.title || '(sin título)';
+
+   viewImagesEl.innerHTML = '';
+    (note.images||[]).forEach((src, i) => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.onclick = () => openLightbox(note.images, i);
+      viewImagesEl.appendChild(img);
+    });
+
+    if(note.type === 'checklist'){
+      viewChecklistEl.style.display = 'block';
+      viewChecklistEl.innerHTML = '';
+      (note.items||[]).forEach((it, i) => {
+        const li = document.createElement('li');
+        li.className = it.done ? 'done' : '';
+        li.innerHTML = '<span class="cb-lg"></span><span>'+escapeHtml(it.text)+'</span>';
+        li.onclick = () => {
+          it.done = !it.done;
+          save();
+          li.className = it.done ? 'done' : '';
+        };
+        viewChecklistEl.appendChild(li);
+      });
+      viewBodyEl.innerHTML = '';
+    } else {
+      viewChecklistEl.style.display = 'none';
+      viewBodyEl.innerHTML = renderMarkdown(note.body || '');
+	  viewBodyEl.style.fontFamily = note.font || "'Inter',sans-serif";
+    }
+
+    viewTagsEl.innerHTML = (note.tags||[]).map(t=>'<span>'+escapeHtml(t)+'</span>').join('');
+
+    viewArchiveBtn.textContent = note.archived ? '↺ restaurar' : '🗄 archivar';
+    viewArchiveBtn.onclick = () => {
+      note.archived = !note.archived;
+      save();
+      closeView();
+      renderAll();
+    };
+	document.getElementById('viewCloseBtn').onclick = closeView;
+
+document.getElementById('viewEditBtn').onclick = () => {
+  const note = state.notes.find(n => n.id === viewingNoteId);
+  closeView();
+  openEditor(note);
+};
+
+    viewOverlay.classList.add('show');
+  }
+  function closeView(){ viewOverlay.classList.remove('show'); viewingNoteId = null; }
+  
+  // ---------- LIGHTBOX ----------
+  let lbImages = [];
+  let lbIndex = 0;
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbCounter = document.getElementById('lbCounter');
+  const lbPrevBtn = document.getElementById('lbPrev');
+  const lbNextBtn = document.getElementById('lbNext');
+
+  function openLightbox(images, index){
+    lbImages = images;
+    lbIndex = index;
+    renderLightbox();
+    lightbox.classList.add('show');
+  }
+  function renderLightbox(){
+    lbImg.src = lbImages[lbIndex];
+    lbCounter.textContent = (lbIndex+1) + ' / ' + lbImages.length;
+    const multi = lbImages.length > 1;
+    lbPrevBtn.style.display = multi ? 'flex' : 'none';
+    lbNextBtn.style.display = multi ? 'flex' : 'none';
+  }
+  function closeLightbox(){ lightbox.classList.remove('show'); }
+
+  document.getElementById('lbClose').onclick = closeLightbox;
+  lbPrevBtn.onclick = () => { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; renderLightbox(); };
+  lbNextBtn.onclick = () => { lbIndex = (lbIndex + 1) % lbImages.length; renderLightbox(); };
+  lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if(!lightbox.classList.contains('show')) return;
+    if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft') lbPrevBtn.click();
+    if(e.key === 'ArrowRight') lbNextBtn.click();
+  });
+
+  // ---------- DIBUJO A MANO ----------
+  const drawOverlay = document.getElementById('drawOverlay');
+  const drawCanvas = document.getElementById('drawCanvas');
+  const drawCtx = drawCanvas.getContext('2d');
+  const DRAW_COLORS = ['#26333a','#5aa7d6','#4bab93','#e69bb0','#f0b98a'];
+  let drawColor = DRAW_COLORS[0];
+  let drawing = false;
+
+  function buildDrawSwatches(){
+    const wrap = document.getElementById('drawSwatches');
+    wrap.innerHTML = '';
+    DRAW_COLORS.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (c===drawColor ? ' active':'');
+      sw.style.background = c;
+      sw.onclick = () => { drawColor = c; buildDrawSwatches(); };
+      wrap.appendChild(sw);
+    });
+  }
+
+  function clearCanvas(){
+    drawCtx.fillStyle = '#ffffff';
+    drawCtx.fillRect(0,0,drawCanvas.width, drawCanvas.height);
+  }
+
+  function canvasPoint(e){
+    const rect = drawCanvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  drawCanvas.addEventListener('pointerdown', (e) => {
+    drawing = true;
+    const p = canvasPoint(e);
+    drawCtx.beginPath();
+    drawCtx.moveTo(p.x, p.y);
+  });
+  drawCanvas.addEventListener('pointermove', (e) => {
+    if(!drawing) return;
+    const p = canvasPoint(e);
+    drawCtx.lineWidth = 3;
+    drawCtx.lineCap = 'round';
+    drawCtx.strokeStyle = drawColor;
+    drawCtx.lineTo(p.x, p.y);
+    drawCtx.stroke();
+  });
+  window.addEventListener('pointerup', () => { drawing = false; });
+
+  document.getElementById('openDrawBtn').onclick = () => {
+    buildDrawSwatches();
+    clearCanvas();
+    drawOverlay.classList.add('show');
+  };
+  document.getElementById('clearDrawBtn').onclick = clearCanvas;
+  document.getElementById('cancelDrawBtn').onclick = () => drawOverlay.classList.remove('show');
+  document.getElementById('useDrawBtn').onclick = () => {
+    editorImages.push(drawCanvas.toDataURL('image/png'));
+    renderImgPreviews();
+    drawOverlay.classList.remove('show');
+  };
+
+  document.getElementById('newNoteBtn').onclick = () => openEditor(null);
+  document.getElementById('cancelBtn').onclick = closeEditor;
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeEditor(); });
+
+  document.getElementById('saveNoteBtn').onclick = () => {
+    const title = titleInput.value.trim();
+    const body = bodyInput.value.trim();
+    const tags = tagsInput.value.split(',').map(t=>t.trim()).filter(Boolean);
+    const cleanChecklist = editorChecklist.filter(i => i.text.trim());
+
+    if(!title && !body && editorImages.length===0 && cleanChecklist.length===0){
+      alert('la nota está vacía.');
+      return;
+    }
+
+    if(editingNoteId){
+  const note = state.notes.find(n=>n.id===editingNoteId);
+  Object.assign(note, {
+    title, body, tags, images: editorImages.slice(), color: editorColor,
+    type: editorType, items: editorType==='checklist' ? cleanChecklist : [],
+    notebookId: notebookSelect.value, updatedAt: Date.now(), font: editorFont
+  });
+} else {
+  state.notes.push({
+    id: uid(), title, body, tags, images: editorImages.slice(), color: editorColor,
+    type: editorType, items: editorType==='checklist' ? cleanChecklist : [],
+    notebookId: notebookSelect.value, updatedAt: Date.now(), pinned: false, font: editorFont
+  });
+}
+    save();
+    closeEditor();
+    renderAll();
+  };
+
+  deleteNoteBtn.onclick = () => {
+    if(!editingNoteId) return;
+    if(confirm('¿eliminar esta nota?')){
+      state.notes = state.notes.filter(n=>n.id!==editingNoteId);
+      save(); closeEditor(); renderAll();
+    }
+  };
+
+  duplicateNoteBtn.onclick = () => {
+    if(!editingNoteId) return;
+    const note = state.notes.find(n=>n.id===editingNoteId);
+    if(note){ duplicateNote(note); closeEditor(); }
+  };
+
+  // ---------- EXPORTAR / IMPORTAR ----------
+  document.getElementById('exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cuaderno-respaldo-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importInput = document.getElementById('importInput');
+  document.getElementById('importBtn').onclick = () => importInput.click();
+  importInput.addEventListener('change', () => {
+    const file = importInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const parsed = JSON.parse(e.target.result);
+        if(!parsed.notebooks || !parsed.notes) throw new Error('formato inválido');
+        if(confirm('esto reemplazará todas las notas actuales por las del respaldo. ¿continuar?')){
+          state = parsed;
+          state.notes.forEach(n => {
+            if(n.image && !n.images){ n.images = [n.image]; delete n.image; }
+            if(!n.images) n.images = [];
+            if(typeof n.pinned !== 'boolean') n.pinned = false;
+          });
+          save(); currentNotebookId = null; activeTagFilter = null; renderAll();
+        }
+      }catch(err){
+        alert('el archivo no parece un respaldo válido de cuaderno.');
+      }
+      importInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  renderAll();
+})();
+
+</script>
+
+</body>
+</html>
