@@ -736,9 +736,9 @@
           html += '<li class="'+(it.done?'done':'')+'"><span class="cb"></span><span>'+escapeHtml(it.text)+'</span></li>';
         });
         html += '</ul>';
-      } else if(n.body){
-        html += '<div class="note-body">'+escapeHtml(truncate(n.body, 160))+'</div>';
-      }
+     } else if(n.body){
+  html += '<div class="note-body" style="font-family:'+(n.font||"'Inter',sans-serif")+';">'+escapeHtml(truncate(n.body, 160))+'</div>';
+}
       if(n.tags && n.tags.length){
         html += '<div class="note-tags">'+n.tags.map(t=>'<span>'+escapeHtml(t)+'</span>').join('')+'</div>';
       }
