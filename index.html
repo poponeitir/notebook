@@ -6,7 +6,7 @@
 <link rel="icon" href="data:image/svg+xml;charset=UTF-8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%93%93</text></svg>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>notebook</title>
+<title>cuaderno</title>
 <style>
 
   :root{
@@ -422,12 +422,49 @@
   padding:4px 12px; border-radius:999px;
 }
 .vw-images img{ cursor:pointer; }
+
+/* ---------- WIKILINKS ---------- */
+.wikilink{ color:var(--aqua-deep); font-weight:600; text-decoration:none; border-bottom:1px dashed var(--aqua); }
+.wikilink:hover{ background:rgba(90,167,214,0.12); }
+
+/* ---------- MAPA DE CONEXIONES ---------- */
+#graphOverlay{ position:fixed; inset:0; background:rgba(38,51,58,0.5); display:none; align-items:center; justify-content:center; padding:20px; z-index:80; }
+#graphOverlay.show{ display:flex; }
+#graphCard{ background:linear-gradient(180deg,#ffffff,#f2f7f9); border-radius:20px; padding:18px; box-shadow:0 30px 60px -20px rgba(38,51,58,0.45); max-width:96vw; }
+.graph-header{ display:flex; align-items:center; gap:16px; margin-bottom:10px; flex-wrap:wrap; }
+.graph-title{ font-weight:700; font-size:15px; flex:1; }
+.graph-legend{ display:flex; gap:14px; font-size:11px; color:var(--ink-soft); }
+.graph-legend span{ display:flex; align-items:center; gap:5px; }
+.dot-legend{ width:10px;height:3px;border-radius:2px; display:inline-block; }
+.dot-legend.link{ background:var(--aqua-deep); }
+.dot-legend.tag{ background:var(--mint-deep); opacity:0.6; }
+#graphCanvas{ border:1px solid var(--line); border-radius:14px; background:#fff; cursor:grab; display:block; max-width:100%; }
+#graphHint{ text-align:center; font-size:11px; color:var(--ink-soft); margin-top:8px; }
+
+/* ---------- TIMELINE + HEATMAP ---------- */
+#statsOverlay{ position:fixed; inset:0; background:rgba(38,51,58,0.5); display:none; align-items:flex-start; justify-content:center; padding:40px 20px; z-index:80; overflow-y:auto; }
+#statsOverlay.show{ display:flex; }
+#statsCard{ width:100%; max-width:760px; background:linear-gradient(180deg,#ffffff,#f2f7f9); border-radius:20px; padding:22px 24px 26px; box-shadow:0 30px 60px -20px rgba(38,51,58,0.45); }
+.stats-section-label{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink-soft); margin:20px 0 10px; }
+#heatmapWrap{ display:flex; gap:3px; overflow-x:auto; padding-bottom:6px; }
+.hm-col{ display:flex; flex-direction:column; gap:3px; }
+.hm-cell{ width:11px; height:11px; border-radius:3px; background:#e6edf1; }
+.hm-cell[data-level="1"]{ background:#c7e9dc; }
+.hm-cell[data-level="2"]{ background:#8fd9c4; }
+.hm-cell[data-level="3"]{ background:#4bab93; }
+.hm-cell[data-level="4"]{ background:#2f8a72; }
+#timelineWrap{ display:flex; flex-direction:column; gap:14px; }
+.tl-month{ display:flex; gap:14px; align-items:flex-start; }
+.tl-month-label{ width:110px; flex-shrink:0; font-size:12px; font-weight:700; color:var(--ink-soft); padding-top:2px; text-transform:capitalize; }
+.tl-note-chip{ display:inline-flex; align-items:center; gap:6px; font-size:12px; background:rgba(255,255,255,0.7); border:1px solid var(--line); border-radius:999px; padding:4px 10px; margin:0 6px 6px 0; cursor:pointer; }
+.tl-note-chip .tl-dot{ width:7px;height:7px;border-radius:50%; }
+.tl-count{ font-size:11px; color:var(--ink-soft); margin-left:4px; }
 </style>
 </head>
 <body>
 
 <div id="sidebar">
-  <div class="wordmark"><span class="orb"></span>notebook</div>
+  <div class="wordmark"><span class="orb"></span>cuaderno</div>
 
   <div id="searchWrap">
     <input type="text" id="searchInput" placeholder="buscar notas...">
@@ -439,6 +476,8 @@
   </div>
 
   <div class="sidebar-bottom">
+    <button id="graphBtn">🕸 mapa de conexiones</button>
+    <button id="statsBtn">📊 timeline y hábitos</button>
     <button id="exportBtn">⇩ exportar respaldo (.json)</button>
     <button id="importBtn">⇧ importar respaldo</button>
     <input type="file" id="importInput" accept="application/json" style="display:none;">
@@ -580,6 +619,34 @@
   <span class="lb-counter" id="lbCounter"></span>
 </div>
 
+<div id="graphOverlay">
+  <div id="graphCard">
+    <div class="graph-header">
+      <div class="graph-title">🕸 mapa de conexiones</div>
+      <div class="graph-legend">
+        <span><i class="dot-legend link"></i> enlace [[ ]]</span>
+        <span><i class="dot-legend tag"></i> etiqueta compartida</span>
+      </div>
+      <button class="ghost-btn" id="closeGraphBtn">cerrar</button>
+    </div>
+    <canvas id="graphCanvas" width="900" height="560"></canvas>
+    <div id="graphHint">arrastra un nodo para moverlo · clic para abrir la nota</div>
+  </div>
+</div>
+
+<div id="statsOverlay">
+  <div id="statsCard">
+    <div class="graph-header">
+      <div class="graph-title">📊 timeline y hábitos de escritura</div>
+      <button class="ghost-btn" id="closeStatsBtn">cerrar</button>
+    </div>
+    <div class="stats-section-label">actividad (últimos 12 meses)</div>
+    <div id="heatmapWrap"></div>
+    <div class="stats-section-label">línea de tiempo</div>
+    <div id="timelineWrap"></div>
+  </div>
+</div>
+
 <script>
 (function(){
   const STORAGE_KEY = 'cuaderno_data_v1';
@@ -615,6 +682,7 @@
       if(!n.images) n.images = [];
       if(typeof n.pinned !== 'boolean') n.pinned = false;
       if(typeof n.archived !== 'boolean') n.archived = false;
+      if(!n.createdAt) n.createdAt = n.updatedAt;
     });
     return data;
   }
@@ -821,7 +889,8 @@
       return t
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/`(.+?)`/g, '<code>$1</code>');
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\[\[(.+?)\]\]/g, '<a href="#" class="wikilink" data-title="$1">$1</a>');
     }
 
     lines.forEach(line => {
@@ -869,7 +938,7 @@
   }
 
   document.getElementById('searchInput').addEventListener('input', (e) => {
-    searchQuery = e.target.value;
+    searchQuery = e.target.value
     renderNotes();
   });
 
@@ -1049,7 +1118,14 @@ fontSelect.value = editorFont;
       viewBodyEl.innerHTML = renderMarkdown(note.body || '');
 	  viewBodyEl.style.fontFamily = note.font || "'Inter',sans-serif";
     }
-
+    viewBodyEl.querySelectorAll('.wikilink').forEach(a => {
+      a.onclick = (e) => {
+        e.preventDefault();
+        const target = state.notes.find(x => (x.title||'').toLowerCase() === a.dataset.title.toLowerCase());
+        if(target){ closeView(); openView(target); }
+        else alert('no se encontró ninguna nota con ese título.');
+      };
+    });
     viewTagsEl.innerHTML = (note.tags||[]).map(t=>'<span>'+escapeHtml(t)+'</span>').join('');
 
     viewArchiveBtn.textContent = note.archived ? '↺ restaurar' : '🗄 archivar';
@@ -1192,7 +1268,8 @@ document.getElementById('viewEditBtn').onclick = () => {
   state.notes.push({
     id: uid(), title, body, tags, images: editorImages.slice(), color: editorColor,
     type: editorType, items: editorType==='checklist' ? cleanChecklist : [],
-    notebookId: notebookSelect.value, updatedAt: Date.now(), pinned: false, font: editorFont
+    notebookId: notebookSelect.value, updatedAt: Date.now(), createdAt: Date.now(),
+    pinned: false, font: editorFont
   });
 }
     save();
@@ -1251,6 +1328,209 @@ document.getElementById('viewEditBtn').onclick = () => {
     };
     reader.readAsText(file);
   });
+  
+  // ---------- MAPA DE CONEXIONES ----------
+  const graphOverlay = document.getElementById('graphOverlay');
+  const graphCanvas = document.getElementById('graphCanvas');
+  const gctx = graphCanvas.getContext('2d');
+  let graphNodes = [], graphEdges = [], graphDragging = null, graphAnimId = null;
+
+  function buildGraphData(){
+    const notes = state.notes.filter(n=>!n.archived);
+    graphNodes = notes.map(n => ({
+      id:n.id, title:n.title||'(sin título)', color:n.color||COLORS[0],
+      x: graphCanvas.width/2 + (Math.random()-0.5)*300,
+      y: graphCanvas.height/2 + (Math.random()-0.5)*300,
+      vx:0, vy:0
+    }));
+    graphEdges = [];
+    notes.forEach(a => {
+      extractLinks(a.body).forEach(linkTitle => {
+        const b = notes.find(x => (x.title||'').toLowerCase() === linkTitle);
+        if(b && b.id !== a.id) graphEdges.push({ from:a.id, to:b.id, type:'link' });
+      });
+    });
+    for(let i=0;i<notes.length;i++){
+      for(let j=i+1;j<notes.length;j++){
+        const tagsA = notes[i].tags||[], tagsB = notes[j].tags||[];
+        if(tagsA.some(t=>tagsB.includes(t))){
+          graphEdges.push({ from:notes[i].id, to:notes[j].id, type:'tag' });
+        }
+      }
+    }
+  }
+
+  function graphStep(){
+    const W = graphCanvas.width, H = graphCanvas.height;
+    for(let i=0;i<graphNodes.length;i++){
+      for(let j=i+1;j<graphNodes.length;j++){
+        const a = graphNodes[i], b = graphNodes[j];
+        let dx = a.x-b.x, dy = a.y-b.y;
+        let dist2 = dx*dx+dy*dy || 0.01;
+        let force = 2200 / dist2;
+        let dist = Math.sqrt(dist2);
+        dx/=dist; dy/=dist;
+        a.vx += dx*force; a.vy += dy*force;
+        b.vx -= dx*force; b.vy -= dy*force;
+      }
+    }
+    graphEdges.forEach(e => {
+      const a = graphNodes.find(n=>n.id===e.from), b = graphNodes.find(n=>n.id===e.to);
+      if(!a||!b) return;
+      let dx = b.x-a.x, dy = b.y-a.y;
+      let dist = Math.sqrt(dx*dx+dy*dy) || 0.01;
+      let force = (dist-130) * 0.02;
+      dx/=dist; dy/=dist;
+      a.vx += dx*force; a.vy += dy*force;
+      b.vx -= dx*force; b.vy -= dy*force;
+    });
+    graphNodes.forEach(n => {
+      if(n === graphDragging) return;
+      n.vx += (W/2 - n.x) * 0.0015;
+      n.vy += (H/2 - n.y) * 0.0015;
+      n.vx *= 0.85; n.vy *= 0.85;
+      n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(30, Math.min(W-30, n.x));
+      n.y = Math.max(30, Math.min(H-30, n.y));
+    });
+  }
+
+  function graphDraw(){
+    gctx.clearRect(0,0,graphCanvas.width, graphCanvas.height);
+    graphEdges.forEach(e => {
+      const a = graphNodes.find(n=>n.id===e.from), b = graphNodes.find(n=>n.id===e.to);
+      if(!a||!b) return;
+      gctx.beginPath();
+      gctx.moveTo(a.x,a.y); gctx.lineTo(b.x,b.y);
+      gctx.strokeStyle = e.type==='link' ? 'rgba(47,111,163,0.55)' : 'rgba(75,171,147,0.35)';
+      gctx.lineWidth = e.type==='link' ? 1.6 : 1;
+      gctx.stroke();
+    });
+    graphNodes.forEach(n => {
+      gctx.beginPath();
+      gctx.arc(n.x, n.y, 9, 0, Math.PI*2);
+      gctx.fillStyle = n.color;
+      gctx.fill();
+      gctx.lineWidth = 1.5; gctx.strokeStyle = '#fff'; gctx.stroke();
+      gctx.font = '11px -apple-system, sans-serif';
+      gctx.fillStyle = '#26333a';
+      gctx.textAlign = 'center';
+      gctx.fillText(truncate(n.title, 16), n.x, n.y + 22);
+    });
+  }
+
+  function graphLoop(){
+    graphStep(); graphDraw();
+    graphAnimId = requestAnimationFrame(graphLoop);
+  }
+
+  function graphPoint(e){
+    const rect = graphCanvas.getBoundingClientRect();
+    return { x:(e.clientX-rect.left)*(graphCanvas.width/rect.width), y:(e.clientY-rect.top)*(graphCanvas.height/rect.height) };
+  }
+
+  graphCanvas.addEventListener('pointerdown', (e) => {
+    const p = graphPoint(e);
+    graphDragging = graphNodes.find(n => Math.hypot(n.x-p.x, n.y-p.y) < 12) || null;
+  });
+  graphCanvas.addEventListener('pointermove', (e) => {
+    if(!graphDragging) return;
+    const p = graphPoint(e);
+    graphDragging.x = p.x; graphDragging.y = p.y; graphDragging.vx = 0; graphDragging.vy = 0;
+  });
+  window.addEventListener('pointerup', () => { graphDragging = null; });
+  graphCanvas.addEventListener('click', (e) => {
+    const p = graphPoint(e);
+    const hit = graphNodes.find(n => Math.hypot(n.x-p.x, n.y-p.y) < 12);
+    if(hit){
+      const note = state.notes.find(n=>n.id===hit.id);
+      if(note){ closeGraph(); openView(note); }
+    }
+  });
+
+  document.getElementById('graphBtn').onclick = () => {
+    buildGraphData();
+    graphOverlay.classList.add('show');
+    if(graphAnimId) cancelAnimationFrame(graphAnimId);
+    graphLoop();
+  };
+  document.getElementById('closeGraphBtn').onclick = closeGraph;
+  function closeGraph(){
+    graphOverlay.classList.remove('show');
+    if(graphAnimId) cancelAnimationFrame(graphAnimId);
+  }
+
+  // ---------- TIMELINE + HEATMAP ----------
+  const statsOverlay = document.getElementById('statsOverlay');
+
+  function buildHeatmap(){
+    const wrap = document.getElementById('heatmapWrap');
+    wrap.innerHTML = '';
+    const DAY = 86400000;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const start = new Date(today.getTime() - 371*DAY);
+    const counts = {};
+    state.notes.forEach(n => {
+      const d = new Date(n.updatedAt); d.setHours(0,0,0,0);
+      counts[d.getTime()] = (counts[d.getTime()]||0) + 1;
+    });
+    let cursor = new Date(start);
+    cursor.setDate(cursor.getDate() - cursor.getDay());
+    while(cursor <= today){
+      const col = document.createElement('div');
+      col.className = 'hm-col';
+      for(let d=0; d<7; d++){
+        const cellDate = new Date(cursor);
+        const cell = document.createElement('div');
+        cell.className = 'hm-cell';
+        if(cellDate <= today && cellDate >= start){
+          const c = counts[cellDate.getTime()] || 0;
+          let level = 0;
+          if(c>=1) level=1; if(c>=3) level=2; if(c>=6) level=3; if(c>=10) level=4;
+          cell.dataset.level = level;
+          cell.title = cellDate.toLocaleDateString('es-CO') + ' · ' + c + ' nota(s)';
+        } else {
+          cell.style.background = 'transparent';
+        }
+        col.appendChild(cell);
+        cursor.setDate(cursor.getDate()+1);
+      }
+      wrap.appendChild(col);
+    }
+  }
+
+  function buildTimeline(){
+    const wrap = document.getElementById('timelineWrap');
+    wrap.innerHTML = '';
+    const notes = state.notes.slice().sort((a,b) => (a.createdAt||a.updatedAt) - (b.createdAt||b.updatedAt));
+    if(!notes.length){
+      wrap.innerHTML = '<div class="empty-state">todavía no hay notas para mostrar en la línea de tiempo.</div>';
+      return;
+    }
+    const groups = {};
+    notes.forEach(n => {
+      const key = new Date(n.createdAt||n.updatedAt).toLocaleDateString('es-CO', { month:'long', year:'numeric' });
+      (groups[key] = groups[key] || []).push(n);
+    });
+    Object.keys(groups).forEach(key => {
+      const row = document.createElement('div');
+      row.className = 'tl-month';
+      row.innerHTML = '<div class="tl-month-label">'+key+'<span class="tl-count">('+groups[key].length+')</span></div><div class="tl-month-bar"></div>';
+      const bar = row.querySelector('.tl-month-bar');
+      groups[key].forEach(n => {
+        const chip = document.createElement('span');
+        chip.className = 'tl-note-chip';
+        chip.innerHTML = '<span class="tl-dot" style="background:'+(n.color||COLORS[0])+';"></span>'+escapeHtml(truncate(n.title||'(sin título)', 28));
+        chip.onclick = () => { closeStats(); openView(n); };
+        bar.appendChild(chip);
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('statsBtn').onclick = () => { buildHeatmap(); buildTimeline(); statsOverlay.classList.add('show'); };
+  document.getElementById('closeStatsBtn').onclick = closeStats;
+  function closeStats(){ statsOverlay.classList.remove('show'); }
 
   renderAll();
 
@@ -1258,6 +1538,8 @@ document.getElementById('viewEditBtn').onclick = () => {
     if(e.key === 'Escape'){
       if(lightbox.classList.contains('show')){ closeLightbox(); return; }
       if(drawOverlay.classList.contains('show')){ drawOverlay.classList.remove('show'); return; }
+      if(graphOverlay.classList.contains('show')){ closeGraph(); return; }
+      if(statsOverlay.classList.contains('show')){ closeStats(); return; }
       if(overlay.classList.contains('show')){ closeEditor(); return; }
       if(viewOverlay.classList.contains('show')){ closeView(); return; }
     }
@@ -1269,6 +1551,12 @@ document.getElementById('viewEditBtn').onclick = () => {
     }
   });
 })();
+
+function extractLinks(body){
+    if(!body) return [];
+    const matches = body.match(/\[\[(.+?)\]\]/g) || [];
+    return matches.map(m => m.slice(2,-2).trim().toLowerCase());
+  }
 
 </script>
 
